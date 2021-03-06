@@ -1,0 +1,154 @@
+
+
+<div class="layui-form" lay-filter="layuiadmin-form-useradmin" style="padding: 20px 0 0 0;">
+	
+  <!--id-->
+  <div class="layui-form-item">
+    <div class="layui-input-inline">
+      <script type="text/html" template>
+        <input type="hidden" name="id" id="id" value="{{ d.params.id || '' }}" lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
+      </script>
+    </div>
+  </div>
+  
+  <!--轮播图名称-->
+  <div class="layui-form-item">
+    <label class="layui-form-label">轮播图名称</label>
+    <div class="layui-input-inline">
+      <script type="text/html" template>
+        <input type="text" name="name" value="{{ d.params.imgName || '' }}" lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
+      </script>
+    </div>
+  </div>
+  
+  <!--标题-->
+  <div class="layui-form-item">
+    <label class="layui-form-label">标题</label>
+    <div class="layui-input-inline">
+      <script type="text/html" template>
+        <input type="text" name="title" value="{{ d.params.imgTitle || '' }}" placeholder="请输入" autocomplete="off" class="layui-input">
+      </script>
+    </div>
+  </div>
+  
+  <!--排序-->
+  <div class="layui-form-item">
+    <label class="layui-form-label">排序</label>
+    <div class="layui-input-inline">
+      <script type="text/html" template>
+        <input type="text" name="sort" lay-verify="numbers"  value="{{ d.params.imgSort || '' }}"  placeholder="请输入" autocomplete="off" class="layui-input" >
+      </script>
+    </div>
+  </div>
+  
+  <!--图片-->
+  <div class="layui-form-item">
+    <label class="layui-form-label">图片</label>
+    <div class="layui-input-inline">
+      <script type="text/html" template>
+        <img class="img" id="demo1" style="display: inline-block; width: 30px; height: 30px;" src={{layui.setter.urll+"/"+d.params.imgUrl}}>
+        <input type="hidden" id="demo2" value="{{d.params.imgUrl}}" name="photo" />
+      </script>
+    </div>
+  </div>
+  
+  <!--编辑图片按钮-->
+  <div class="layui-upload">
+  	<div class="layui-upload-list">
+  		<button type="button" class="layui-btn" id="upPhoto" style="position: absolute;left: 228px;top: 215px;">编辑图片</button>
+  	</div>
+  </div>
+	
+  
+  <!--跳转音频-->
+  <div class="layui-form-item">
+    <label class="layui-form-label">跳转音频</label>
+    <div class="layui-input-inline">
+      <script type="text/html" template>
+        <input type="text" name="jump" value="{{ d.params.imgAddress || '' }}" lay-verify="required" placeholder="请上传图片" autocomplete="off" class="layui-input" >
+      </script>
+    </div>
+  </div>
+  
+  <!--确认-->
+  <div class="layui-form-item">
+    <label class="layui-form-label"></label>
+    <div class="layui-input-inline">
+      <input type="button" id="confirm" lay-submit lay-filter="LAY-advertisement-front-submit" value="确认" class="layui-btn">
+    </div>
+  </div>
+  
+</div>
+
+<script>
+    layui.use(['form','jquery','admin', 'form', 'upload'], function () {
+       	var $ = layui.$
+  		,form = layui.form
+  		,upload = layui.upload;
+  		
+  		/*上传图片*/
+  		var uploadInst = upload.render({
+		    elem: '#upPhoto'
+		    ,url: layui.setter.urll + '/api/upload/image'
+		    ,before: function(obj){
+		      obj.preview(function(index, file, result){
+		        $('#demo1').attr('src', result);
+		      });
+		    }
+		    ,done: function(result){
+		    	$('#demo2').val(result.data);
+		    }
+		    ,error: function(){
+		    	layer.msg('操作失败');
+		    }
+		});
+  
+        var  list = [];
+        setTimeout(function () {
+        	var result = $('#id').val();
+        	$.ajax({
+	            url: layui.setter.urll + '/api/admin/banner/sort/'+result,
+	            dataType: 'JSON',
+	            crossurll: true,
+	            type: 'get',
+	            data:{
+	                'token': layui.data('data').token
+	            },
+	            success: function (data) {
+	                if (data.code == 403) {
+	                    layer.closeAll();
+	                    admin.exit();
+	                    setTimeout(function () {
+	                        layer.alert('此账号已在别处登录,请重新登录！', { icon: 5 });
+	                    }, 666);
+	                }
+	                list = data.data;
+	            },
+	            error: function (err) {
+					
+	            }
+	        });
+        }, 666);
+        
+        $('#confirm').click(function () {
+            var result = $(":input[name='sort']").val();
+            for (var i = 0; i < list.length; i++) {
+                if (result == list[i]) {
+                    layer.msg('排序已存在，请重新输入');
+                    $(":input[name='sort']").focus();
+                    return false;
+                }
+            }
+        });
+        
+        form.verify({
+            numbers: function (value, item) {
+                var reg = '^[0-9]*$';
+                if (!new RegExp(reg).test(value)) {
+                    return '只能填写整数';
+                }
+            }
+        });
+        
+    });    
+</script>
